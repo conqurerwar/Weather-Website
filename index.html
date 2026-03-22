@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Skyglass — Weather</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+</head>
+<body>
+
+  <!-- Animated background -->
+  <div class="bg" id="bg">
+    <div class="bg-orb orb1"></div>
+    <div class="bg-orb orb2"></div>
+    <div class="bg-orb orb3"></div>
+    <canvas id="particleCanvas"></canvas>
+  </div>
+
+  <div class="shell">
+
+    <!-- Header -->
+    <header class="header">
+      <div class="logo">Skyglass</div>
+      <div class="unit-toggle">
+        <button class="unit-btn active" id="btnC" onclick="setUnit('C')">°C</button>
+        <button class="unit-btn" id="btnF" onclick="setUnit('F')">°F</button>
+      </div>
+    </header>
+
+    <!-- Search -->
+    <div class="search-wrap">
+      <div class="search-box">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="cityInput" type="text" placeholder="Search any city…" autocomplete="off"/>
+        <button id="searchBtn">Go</button>
+      </div>
+      <div class="suggestions" id="suggestions"></div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-banner" id="errorBanner"></div>
+
+    <!-- Main weather card -->
+    <div class="main-card" id="mainCard">
+      <div class="loader-wrap" id="loaderWrap">
+        <div class="spinner"></div>
+        <p>Reading the skies…</p>
+      </div>
+
+      <div class="weather-body" id="weatherBody" style="display:none">
+
+        <!-- Hero -->
+        <div class="hero">
+          <div class="hero-left">
+            <p class="city-label" id="cityLabel">--</p>
+            <p class="date-label" id="dateLabel">--</p>
+            <div class="temp-row">
+              <span class="big-temp" id="bigTemp">--</span>
+              <div class="temp-range">
+                <span class="temp-hi" id="tempHi">↑ --</span>
+                <span class="temp-lo" id="tempLo">↓ --</span>
+              </div>
+            </div>
+            <p class="cond-label" id="condLabel">--</p>
+          </div>
+          <div class="hero-right">
+            <img id="heroIcon" src="" alt=""/>
+            <div class="feels-pill">Feels <span id="feelsLike">--</span></div>
+          </div>
+        </div>
+
+        <!-- Stat Strip -->
+        <div class="stat-strip">
+          <div class="stat" data-tip="Relative humidity">
+            <div class="stat-icon">💧</div>
+            <div class="stat-val" id="humidity">--%</div>
+            <div class="stat-key">Humidity</div>
+            <div class="stat-bar"><div class="stat-fill" id="humBar"></div></div>
+          </div>
+          <div class="stat" data-tip="Wind speed">
+            <div class="stat-icon">🌬️</div>
+            <div class="stat-val" id="wind">--</div>
+            <div class="stat-key">Wind</div>
+            <div class="wind-arrow" id="windArrow">↑</div>
+          </div>
+          <div class="stat" data-tip="Atmospheric pressure">
+            <div class="stat-icon">🌡️</div>
+            <div class="stat-val" id="pressure">--</div>
+            <div class="stat-key">Pressure</div>
+          </div>
+          <div class="stat" data-tip="Visibility distance">
+            <div class="stat-icon">👁️</div>
+            <div class="stat-val" id="visibility">--</div>
+            <div class="stat-key">Visibility</div>
+          </div>
+          <div class="stat" data-tip="Cloud coverage">
+            <div class="stat-icon">☁️</div>
+            <div class="stat-val" id="clouds">--%</div>
+            <div class="stat-key">Cloud</div>
+            <div class="stat-bar"><div class="stat-fill" id="cloudBar"></div></div>
+          </div>
+          <div class="stat" data-tip="UV Index">
+            <div class="stat-icon">☀️</div>
+            <div class="stat-val" id="uvIndex">--</div>
+            <div class="stat-key">UV Index</div>
+          </div>
+        </div>
+
+        <!-- Sun timeline -->
+        <div class="sun-section">
+          <div class="sun-ends">
+            <div class="sun-end">
+              <span class="sun-emoji">🌅</span>
+              <span class="sun-time" id="sunrise">--</span>
+              <span class="sun-lbl">Sunrise</span>
+            </div>
+            <div class="sun-end">
+              <span class="sun-emoji">🌇</span>
+              <span class="sun-time" id="sunset">--</span>
+              <span class="sun-lbl">Sunset</span>
+            </div>
+          </div>
+          <div class="sun-track">
+            <div class="sun-arc"></div>
+            <div class="sun-dot" id="sunDot"></div>
+          </div>
+          <div class="day-length" id="dayLength">Day length: --</div>
+        </div>
+
+        <!-- 5-day forecast -->
+        <div class="forecast-section">
+          <h3 class="section-title">5-Day Forecast</h3>
+          <div class="forecast-row" id="forecastRow"></div>
+        </div>
+
+        <!-- Air quality -->
+        <div class="aqi-section" id="aqiSection" style="display:none">
+          <h3 class="section-title">Air Quality</h3>
+          <div class="aqi-bar-wrap">
+            <div class="aqi-bar">
+              <div class="aqi-fill" id="aqiFill"></div>
+              <div class="aqi-needle" id="aqiNeedle"></div>
+            </div>
+            <div class="aqi-labels">
+              <span>Good</span><span>Fair</span><span>Moderate</span><span>Poor</span><span>Very Poor</span>
+            </div>
+          </div>
+          <p class="aqi-desc" id="aqiDesc"></p>
+        </div>
+
+        <!-- Map -->
+        <div class="map-section">
+          <h3 class="section-title">Location</h3>
+          <div class="map-frame" id="mapFrame"></div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Quick cities -->
+    <div class="quick-cities">
+      <span class="quick-label">Quick search:</span>
+      <button class="qcity" onclick="quickCity('New York')">New York</button>
+      <button class="qcity" onclick="quickCity('Tokyo')">Tokyo</button>
+      <button class="qcity" onclick="quickCity('London')">London</button>
+      <button class="qcity" onclick="quickCity('Dubai')">Dubai</button>
+      <button class="qcity" onclick="quickCity('Sydney')">Sydney</button>
+    </div>
+
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
